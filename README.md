@@ -65,6 +65,68 @@ No schema hard-coded → fully reusable.
 
 ---
 
+                      ┌───────────────────────────────┐
+                      │            INPUTS              │
+                      │───────────────────────────────│
+                      │  • SQL Database Tables         │
+                      │  • JSON Config (ProfileID)     │
+                      │  • DataFrames / Dictionaries   │
+                      └───────────────┬───────────────┘
+                                      │
+                                      ▼
+                 ┌──────────────────────────────────────────┐
+                 │      1) DATA EXTRACTION LAYER            │
+                 │──────────────────────────────────────────│
+                 │ • Execute parameterized SQL queries      │
+                 │ • Fetch groups, codes, products, attrs   │
+                 │ • Convert results to pandas DataFrames   │
+                 └───────────────┬──────────────────────────┘
+                                 │
+                                 ▼
+                 ┌──────────────────────────────────────────┐
+                 │      2) DATA TRANSFORMATION LAYER         │
+                 │──────────────────────────────────────────│
+                 │ • Clean / normalize values               │
+                 │ • Generate flags (show/hide fields)      │
+                 │ • Map 0/1 → readable XML values          │
+                 │ • Summarize numeric ranges               │
+                 │ • Build product + attribute dicts        │
+                 └───────────────┬──────────────────────────┘
+                                 │
+                                 ▼
+                 ┌──────────────────────────────────────────┐
+                 │  3) XML FRAGMENT GENERATION (convert2XML) │
+                 │──────────────────────────────────────────│
+                 │ • Convert DF or dict → XML string        │
+                 │ • Clean unwanted tags (<item>, <n0>…)    │
+                 │ • Output as ElementTree or write to file │
+                 └───────────────┬──────────────────────────┘
+                                 │
+                                 ▼
+        ┌──────────────────────────────────────────────────────────────┐
+        │  4) XML TREE CONSTRUCTION (insert_xmltree, append_xmltree)  │
+        │──────────────────────────────────────────────────────────────│
+        │ • Insert XML fragments into parent nodes                    │
+        │ • Create nested child structures (e.g., Product lists)      │
+        │ • Append intermediate XML blocks into a master XML file     │
+        └───────────────┬────────────────────────────────────────────┘
+                         │
+                         ▼
+        ┌──────────────────────────────────────────────────────────────┐
+        │     5) XML WRAPPING (node_wrapper)                           │
+        │──────────────────────────────────────────────────────────────│
+        │ • Surround merged XML with <Parent> ... </Parent> tags       │
+        │ • Finalize schema-based layout                               │
+        └───────────────┬────────────────────────────────────────────┘
+                         │
+                         ▼
+             ┌──────────────────────────────────────────────────┐
+             │          FINAL OUTPUT XML FILE                   │
+             │──────────────────────────────────────────────────│
+             │ • Fully assembled XML                             │
+             │ • Ready for AMS triggers / downstream systems     │
+             │ • Schema-agnostic: supports any product/category  │
+             └──────────────────────────────────────────────────┘
 
 
 
